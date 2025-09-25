@@ -7,48 +7,57 @@ CREATE TABLE StudentEnrollments (
     enrollment_date DATE
 );
 
-INSERT INTO StudentEnrollments VALUES
-(1,'Ashish','CSE101','2024-06-01'),
-(2,'Smaran','CSE102','2024-06-01'),
-(3,'Vaibhav','CSE103','2024-06-01');
+INSERT INTO StudentEnrollments VALUES 
+    (1, 'Ashish', 'CSE101', '2024-06-01'),
+    (2, 'Smaran', 'CSE102', '2024-06-01'),
+    (3, 'Vaibhav', 'CSE103', '2024-06-01');
 
-
+-- First Transaction
 START TRANSACTION;
-UPDATE StudentEnrollments SET enrollment_date='2024-06-05' WHERE student_id=1;
-UPDATE StudentEnrollments SET enrollment_date='2024-06-06' WHERE student_id=2;
+UPDATE StudentEnrollments SET enrollment_date = '2024-06-05' WHERE student_id = 1;
+UPDATE StudentEnrollments SET enrollment_date = '2024-06-06' WHERE student_id = 2;
 COMMIT;
 
+-- Second Transaction
 START TRANSACTION;
-UPDATE StudentEnrollments SET enrollment_date='2024-06-07' WHERE student_id=2;
-UPDATE StudentEnrollments SET enrollment_date='2024-06-08' WHERE student_id=1;
+UPDATE StudentEnrollments SET enrollment_date = '2024-06-07' WHERE student_id = 2;
+UPDATE StudentEnrollments SET enrollment_date = '2024-06-08' WHERE student_id = 1;
 COMMIT;
 
-
-START TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-SELECT * FROM StudentEnrollments WHERE student_id=1;
-
+-- Transaction with REPEATABLE READ isolation level
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 START TRANSACTION;
-UPDATE StudentEnrollments SET enrollment_date='2024-07-10' WHERE student_id=1;
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
 COMMIT;
 
-SELECT * FROM StudentEnrollments WHERE student_id=1;
-COMMIT;
-
-
+-- Update in a new transaction
 START TRANSACTION;
-SELECT * FROM StudentEnrollments WHERE student_id=1 FOR UPDATE;
+UPDATE StudentEnrollments SET enrollment_date = '2024-07-10' WHERE student_id = 1;
+COMMIT;
 
+-- Select after update
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
+
+-- Select with FOR UPDATE
 START TRANSACTION;
-SELECT * FROM StudentEnrollments WHERE student_id=1;
+SELECT * FROM StudentEnrollments WHERE student_id = 1 FOR UPDATE;
 COMMIT;
 
-
-START TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-SELECT * FROM StudentEnrollments WHERE student_id=1;
-
+-- Another transaction with select
 START TRANSACTION;
-UPDATE StudentEnrollments SET enrollment_date='2024-08-01' WHERE student_id=1;
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
 COMMIT;
 
-SELECT * FROM StudentEnrollments WHERE student_id=1;
+-- Repeatable Read transaction and select again
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+START TRANSACTION;
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
 COMMIT;
+
+-- Update and commit
+START TRANSACTION;
+UPDATE StudentEnrollments SET enrollment_date = '2024-08-01' WHERE student_id = 1;
+COMMIT;
+
+-- Final select
+SELECT * FROM StudentEnrollments WHERE student_id = 1;
