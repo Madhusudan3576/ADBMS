@@ -8,51 +8,26 @@ CREATE TABLE StudentEnrollments (
     CONSTRAINT uq_student_course UNIQUE (student_name, course_id)
 );
 
-INSERT INTO StudentEnrollments (student_name, course_id, enrollment_date) VALUES
+INSERT INTO StudentEnrollments (student_name, course_id, enrollment_date) VALUES 
 ('Ashish', 'CSE101', '2024-07-01'),
 ('Smaran', 'CSE102', '2024-07-01'),
-('Vaibhav','CSE101', '2024-07-01');
+('Vaibhav', 'CSE101', '2024-07-01');
 
+-- To avoid duplicate error, check before insert or use INSERT IGNORE / ON DUPLICATE KEY UPDATE
 
-START TRANSACTION;
+-- Example: Insert only if not exists (MySQL 8.0+)
 INSERT INTO StudentEnrollments (student_name, course_id, enrollment_date)
-VALUES ('Ashish', 'CSE101', '2024-07-01');
+SELECT * FROM (SELECT 'Ashish', 'CSE101', '2024-07-01') AS tmp
+WHERE NOT EXISTS (
+    SELECT 1 FROM StudentEnrollments WHERE student_name = 'Ashish' AND course_id = 'CSE101'
+) LIMIT 1;
+
+-- Transaction to update enrollment_date safely with row locking
+START TRANSACTION;
+SELECT * FROM StudentEnrollments WHERE student_name = 'Ashish' AND course_id = 'CSE101' FOR UPDATE;
+UPDATE StudentEnrollments SET enrollment_date = '2024-07-20' WHERE student_name = 'Ashish' AND course_id = 'CSE101';
 COMMIT;
 
-START TRANSACTION;
-INSERT INTO StudentEnrollments (student_name, course_id, enrollment_date)
-VALUES ('Ashish', 'CSE101', '2024-07-01');
-ROLLBACK;
-
-
-START TRANSACTION;
-SELECT * FROM StudentEnrollments
-WHERE student_name = 'Ashish' AND course_id = 'CSE101'
-FOR UPDATE;
-START TRANSACTION;
-UPDATE StudentEnrollments
-SET enrollment_date = '2024-07-15'
-WHERE student_name = 'Ashish' AND course_id = 'CSE101';
-
-COMMIT;
-
-START TRANSACTION;
-SELECT * FROM StudentEnrollments
-WHERE student_name = 'Ashish' AND course_id = 'CSE101'
-
-FOR UPDATE;
-UPDATE StudentEnrollments
-SET enrollment_date = '2024-07-10'
-WHERE student_name = 'Ashish' AND course_id = 'CSE101';
-COMMIT;
-
-START TRANSACTION;
-SELECT * FROM StudentEnrollments
-WHERE student_name = 'Ashish' AND course_id = 'CSE101'
-FOR UPDATE;
-UPDATE StudentEnrollments
-SET enrollment_date = '2024-07-20'
-WHERE student_name = 'Ashish' AND course_id = 'CSE101';
-COMMIT;
-
+-- Final select to view table
 SELECT * FROM StudentEnrollments;
+
